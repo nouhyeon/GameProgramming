@@ -38,11 +38,11 @@ typedef struct {
 } GameContext;
 
 GameContext game = { 0.0f, 0.0f, 1, 0, ' '};
+ID3D11Buffer* pVBuffer;
 
 // --- 1. 입력 단계 (Process Input) ---
 // 정석: "무슨 일이 일어났는지"만 기록함.
 void ProcessInput(GameContext* ctx) {
-    scanf_s(" %c", &(ctx->currentInput), (unsigned int)sizeof(char));
 }
 
 // --- 2. 업데이트 단계 (Update) ---
@@ -62,7 +62,19 @@ void Update(GameContext* ctx) {
     if (GetAsyncKeyState(VK_DOWN) & 0x8000) { ctx->playerPosY -= 0.005f; ctx->isMove = 1; }
 
     // 세상의 규칙 (Boundary Check)
- 
+    Vertex vertices[] = {
+           {  game.playerPosX + 0.0f,game.playerPosY + 0.5f,  0.5f,1.0f, 0.0f, 0.0f, 1.0f  },
+       {  game.playerPosX + 0.32475f, game.playerPosY + 0.25f, 0.5f,0.0f, 1.0f, 0.0f, 1.0f},
+       { game.playerPosX - 0.32475f, game.playerPosY + 0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f},
+       {  game.playerPosX , game.playerPosY + 0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
+       { game.playerPosX - 0.32475f, game.playerPosY + 0.25f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f},
+       { game.playerPosX + 0.32475f, game.playerPosY + 0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f  },
+    };
+    
+    D3D11_BUFFER_DESC bd = { sizeof(vertices), D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, 0, 0, 0 };
+    D3D11_SUBRESOURCE_DATA initData = { vertices, 0, 0 };
+    g_pd3dDevice->CreateBuffer(&bd, &initData, &pVBuffer);
+
 }
 
 // --- 3. 출력 단계 (Render) ---
@@ -159,19 +171,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     vsBlob->Release(); psBlob->Release(); // 컴파일용 임시 메모리 해제
 
     // 4. 정점 버퍼 생성 (삼각형 데이터)
-    Vertex vertices[] = {
-        {  game.playerPosX + 0.0f,game.playerPosY + 0.5f,  0.5f,1.0f, 0.0f, 0.0f, 1.0f  },
-    {  game.playerPosX + 0.32475f, game.playerPosY + 0.25f, 0.5f,0.0f, 1.0f, 0.0f, 1.0f},
-    { game.playerPosX - 0.32475f, game.playerPosY + 0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f},
-    {  game.playerPosX , game.playerPosY + 0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 1.0f },
-    { game.playerPosX -0.32475f, game.playerPosY + 0.25f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f},
-    { game.playerPosX + 0.32475f, game.playerPosY + 0.25f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f  },
-    };
-    ID3D11Buffer* pVBuffer;
-    D3D11_BUFFER_DESC bd = { sizeof(vertices), D3D11_USAGE_DEFAULT, D3D11_BIND_VERTEX_BUFFER, 0, 0, 0 };
-    D3D11_SUBRESOURCE_DATA initData = { vertices, 0, 0 };
-    g_pd3dDevice->CreateBuffer(&bd, &initData, &pVBuffer);
-
+    
     // --- [5. 정석 게임 루프] ---
     MSG msg = { 0 };
     while (WM_QUIT != msg.message) {
