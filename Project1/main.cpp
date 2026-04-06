@@ -207,10 +207,7 @@ public:
 
 
 
-    if (pVBuffer) {
-      pVBuffer->Release();
-      pVBuffer = nullptr;
-    }
+
 
   }
 
